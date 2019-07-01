@@ -8,21 +8,21 @@ def evalrank(model, data, split='dev'):
     Evaluate a trained model on either dev ortest
     """
 
-    print 'Loading dataset'
+    print('Loading dataset')
     if split == 'dev':
         X = load_dataset(data)[1]
     else:
         X = load_dataset(data, load_test=True)
 
 
-    print 'Computing results...'
+    print('Computing results...')
     ls = encode_sentences(model, X[0])
     lim = encode_images(model, X[1])
 
     (r1, r5, r10, medr) = i2t(lim, ls)
-    print "Image to text: %.1f, %.1f, %.1f, %.1f" % (r1, r5, r10, medr)
+    print("Image to text: %.1f, %.1f, %.1f, %.1f" % (r1, r5, r10, medr))
     (r1i, r5i, r10i, medri) = t2i(lim, ls)
-    print "Text to image: %.1f, %.1f, %.1f, %.1f" % (r1i, r5i, r10i, medri)
+    print("Text to image: %.1f, %.1f, %.1f, %.1f" % (r1i, r5i, r10i, medri))
 
 
 def i2t(images, captions, npts=None):
@@ -32,7 +32,7 @@ def i2t(images, captions, npts=None):
     Captions: (5N, K) matrix of captions
     """
     if npts == None:
-        npts = images.size()[0] / 5
+        npts = images.size()[0] // 5
 
     ranks = numpy.zeros(npts)
     for index in range(npts):
@@ -69,7 +69,7 @@ def t2i(images, captions, npts=None, data='f8k'):
     Captions: (5N, K) matrix of captions
     """
     if npts == None:
-        npts = images.size()[0] / 5
+        npts = images.size()[0] // 5
 
     ims = torch.cat([images[i].unsqueeze(0) for i in range(0, len(images), 5)])
 

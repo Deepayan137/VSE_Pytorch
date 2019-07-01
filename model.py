@@ -2,7 +2,8 @@
 import torch
 from utils import l2norm, xavier_weight
 from torch.autograd import Variable
-
+import pdb
+import torch.nn.functional as F
 
 class ImgSenRanking(torch.nn.Module):
     def __init__(self, model_options):
@@ -11,7 +12,7 @@ class ImgSenRanking(torch.nn.Module):
         self.lstm = torch.nn.LSTM(model_options['dim_word'], model_options['dim'], 1)
         self.embedding = torch.nn.Embedding(model_options['n_words'], model_options['dim_word'])
         self.model_options = model_options
-        self.init_weights()
+        # self.init_weights()
 
     def init_weights(self):
         xavier_weight(self.linear.weight)
@@ -24,18 +25,18 @@ class ImgSenRanking(torch.nn.Module):
         _, (x_emb, _) = self.lstm(x_emb)
         x_emb = x_emb.squeeze(0)
 
-        return l2norm(x_emb), l2norm(im)
-
+        return  F.normalize(x_emb, p=2, dim=1), F.normalize(im, p=2, dim=1)
+    
     def forward_sens(self, x):
         x_emb = self.embedding(x)
 
         _, (x_emb, _) = self.lstm(x_emb)
         x_cat = x_emb.squeeze(0)
-        return l2norm(x_cat)
+        return F.normalize(x_cat, p=2, dim=1)
 
     def forward_imgs(self, im):
         im = self.linear(im)
-        return l2norm(im)
+        return F.normalize(im, p=2, dim=1)
 
 class PairwiseRankingLoss(torch.nn.Module):
 
@@ -54,7 +55,7 @@ class PairwiseRankingLoss(torch.nn.Module):
         # compare every diagonal score to scores in its row (i.e, all contrastive sentences for each image)
         cost_im = torch.max(Variable(torch.zeros(scores.size()[0], scores.size()[1]).cuda()), (margin-diagonal).expand_as(scores).transpose(1, 0)+scores)
 
-        for i in xrange(scores.size()[0]):
+        for i in range(scores.size()[0]):
             cost_s[i, i] = 0
             cost_im[i, i] = 0
 
